@@ -56,7 +56,8 @@ jobs:
             'CONFIG += STATIC ARCH64' \
             'INCLUDEPATH += $(pwd)/OpenSSL/OpenSSL_mingw32/include' \
             'LIBS += -L$(pwd)/OpenSSL/OpenSSL_mingw32/lib -lssl -lcrypto'
-          make -j"$(nproc)"
+          sed -i 's|../../../OpenSSL_mingw64/lib|$(pwd)/OpenSSL/OpenSSL_mingw32/lib|g' Makefile.Release Makefile
+          make -f Makefile.Release -j"$(nproc)"
           mkdir -p $GITHUB_WORKSPACE/bin
           cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
           cp ../virtual_fs/dokan/x64/dokan1.dll $GITHUB_WORKSPACE/bin
