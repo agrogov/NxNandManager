@@ -34,16 +34,16 @@ jobs:
           7z x OpenSSL_mingw_build.rar -oOpenSSL/tmp
           mv OpenSSL/tmp/OpenSSL_mingw32/* OpenSSL/OpenSSL_mingw64/
 
-      # Build the project with explicit OpenSSL paths
+      # Build the project with Makefile patching
       - name: Build
         shell: msys2 {0}
         run: |
           ln -s $(pwd) ~/NxNandManager
           cd ~/NxNandManager/NxNandManager/gui
-          /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro \
-            "CONFIG += STATIC ARCH64" \
-            "INCLUDEPATH += $(pwd)/OpenSSL/OpenSSL_mingw64/include" \
-            "LIBS += -L$(pwd)/OpenSSL/OpenSSL_mingw64/lib -lssl -lcrypto"
+          /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro "CONFIG += STATIC ARCH64"
+          # Replace hardcoded paths in Makefile.Release
+          sed -i "s|../../../OpenSSL_mingw64/lib|$(pwd)/OpenSSL/OpenSSL_mingw64/lib|g" Makefile.Release
+          sed -i "s|../../../OpenSSL_mingw64/include|$(pwd)/OpenSSL/OpenSSL_mingw64/include|g" Makefile.Release
           make -f Makefile.Release -j"$(nproc)"
           mkdir -p $GITHUB_WORKSPACE/bin
           cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
