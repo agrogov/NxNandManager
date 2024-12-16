@@ -38,12 +38,24 @@ jobs:
           ln -s $(pwd) ~/NxNandManager
           cd ~/NxNandManager/NxNandManager/gui
 
+          # Define absolute paths to OpenSSL directories
+          OPENSSL_LIB_DIR=$(cd ../../OpenSSL/OpenSSL_mingw64/lib && pwd)
+          OPENSSL_INCLUDE_DIR=$(cd ../../OpenSSL/OpenSSL_mingw64/include && pwd)
+
           # Generate the Makefile
           /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro 'CONFIG += STATIC ARCH64'
 
+          # Debug: Show paths and generated Makefile
+          echo "OpenSSL Library Directory: $OPENSSL_LIB_DIR"
+          echo "OpenSSL Include Directory: $OPENSSL_INCLUDE_DIR"
+          cat Makefile.Release
+
           # Patch Makefile.Release to update OpenSSL paths
-          sed -i "s|../../../OpenSSL_mingw64/lib|$(pwd)/OpenSSL/OpenSSL_mingw64/lib|g" Makefile.Release
-          sed -i "s|../../../OpenSSL_mingw64/include|$(pwd)/OpenSSL/OpenSSL_mingw64/include|g" Makefile.Release
+          sed -i "s|../../../OpenSSL_mingw64/lib|$OPENSSL_LIB_DIR|g" Makefile.Release
+          sed -i "s|../../../OpenSSL_mingw64/include|$OPENSSL_INCLUDE_DIR|g" Makefile.Release
+
+          # Debug: Show patched Makefile
+          cat Makefile.Release
 
           # Build the project
           make -f Makefile.Release -j"$(nproc)"
