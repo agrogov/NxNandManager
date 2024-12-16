@@ -33,17 +33,11 @@ jobs:
           mkdir -p OpenSSL
           7z x OpenSSL_mingw_build.rar -oOpenSSL
 
-      # Debug OpenSSL Directory Structure
-      - name: Debug OpenSSL Directory
-        run: |
-          echo "Listing OpenSSL directory:"
-          ls -R OpenSSL
-
-      # Link OpenSSL libraries for mingw64
+      # Set OpenSSL Paths to OpenSSL_mingw32
       - name: Configure OpenSSL
         shell: bash
         run: |
-          export OPENSSL_DIR=$(pwd)/OpenSSL/OpenSSL_mingw64
+          export OPENSSL_DIR=$(pwd)/OpenSSL/OpenSSL_mingw32
           export LIBRARY_PATH=$OPENSSL_DIR/lib:$LIBRARY_PATH
           export C_INCLUDE_PATH=$OPENSSL_DIR/include:$C_INCLUDE_PATH
           export PATH=$OPENSSL_DIR/bin:$PATH
@@ -60,8 +54,8 @@ jobs:
           cd ~/NxNandManager/NxNandManager/gui
           /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro \
             'CONFIG += STATIC ARCH64' \
-            'INCLUDEPATH += $(pwd)/OpenSSL/OpenSSL_mingw64/include' \
-            'LIBS += -L$(pwd)/OpenSSL/OpenSSL_mingw64/lib -lssl -lcrypto'
+            'INCLUDEPATH += $(pwd)/OpenSSL/OpenSSL_mingw32/include' \
+            'LIBS += -L$(pwd)/OpenSSL/OpenSSL_mingw32/lib -lssl -lcrypto'
           make -j"$(nproc)"
           mkdir -p $GITHUB_WORKSPACE/bin
           cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
