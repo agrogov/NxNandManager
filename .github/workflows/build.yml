@@ -48,7 +48,6 @@ jobs:
           # Debug: Show paths and generated Makefile
           echo "OpenSSL Library Directory: $OPENSSL_LIB_DIR"
           echo "OpenSSL Include Directory: $OPENSSL_INCLUDE_DIR"
-          cat Makefile.Release
 
           # Patch Makefile.Release to update OpenSSL paths
           sed -i "s|../../../OpenSSL_mingw64/lib|$OPENSSL_LIB_DIR|g" Makefile.Release
