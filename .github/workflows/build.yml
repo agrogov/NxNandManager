@@ -22,10 +22,10 @@ jobs:
             mingw-w64-x86_64-toolchain
             mingw64/mingw-w64-x86_64-qt5-static
       
-      # Install 7-Zip if not already available
+      # Install 7-Zip
       - name: Install 7-Zip
         run: choco install 7zip -y
-      
+
       # Download and extract OpenSSL binaries
       - name: Download and extract OpenSSL
         run: |
@@ -33,12 +33,18 @@ jobs:
           mkdir OpenSSL
           7z x OpenSSL_mingw_build.rar -oOpenSSL
 
-      # Add OpenSSL binaries to the build environment
-      - name: Add OpenSSL to PATH
+      # Link OpenSSL libraries for mingw64
+      - name: Configure OpenSSL
         shell: bash
         run: |
-          export PATH=$(pwd)/OpenSSL:$PATH
-          echo "PATH=$(pwd)/OpenSSL:\$PATH" >> $GITHUB_ENV
+          export OPENSSL_DIR=$(pwd)/OpenSSL/OpenSSL_mingw64
+          export LIBRARY_PATH=$OPENSSL_DIR/lib:$LIBRARY_PATH
+          export C_INCLUDE_PATH=$OPENSSL_DIR/include:$C_INCLUDE_PATH
+          export PATH=$OPENSSL_DIR/bin:$PATH
+          echo "OPENSSL_DIR=$OPENSSL_DIR" >> $GITHUB_ENV
+          echo "LIBRARY_PATH=$OPENSSL_DIR/lib:\$LIBRARY_PATH" >> $GITHUB_ENV
+          echo "C_INCLUDE_PATH=$OPENSSL_DIR/include:\$C_INCLUDE_PATH" >> $GITHUB_ENV
+          echo "PATH=$OPENSSL_DIR/bin:\$PATH" >> $GITHUB_ENV
 
       # Build the project
       - name: Build
@@ -46,7 +52,7 @@ jobs:
         run: |
           ln -s $(pwd) ~/NxNandManager
           cd ~/NxNandManager/NxNandManager/gui
-          /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro 'CONFIG += STATIC ARCH64'
+          /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro 'CONFIG += STATIC ARCH64 OPENSSL_LIBS="-L$(pwd)/OpenSSL/OpenSSL_mingw64/lib -lssl -lcrypto"'
           make -j"$(nproc)"
           mkdir -p $GITHUB_WORKSPACE/bin
           cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
