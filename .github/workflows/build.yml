@@ -33,7 +33,6 @@ jobs:
           mkdir -p OpenSSL/OpenSSL_mingw64
           7z x OpenSSL_mingw_build.rar -oOpenSSL/tmp
           mv OpenSSL/tmp/OpenSSL_mingw32/* OpenSSL/OpenSSL_mingw64/
-          rm -rf OpenSSL/tmp
 
       # Build the project
       - name: Build
