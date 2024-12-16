@@ -11,9 +11,10 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
+      # Check out the code
       - uses: actions/checkout@v3
-      
-      # Set up MSYS2
+
+      # Set up MSYS2 with necessary tools
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -21,12 +22,8 @@ jobs:
             base-devel
             mingw-w64-x86_64-toolchain
             mingw64/mingw-w64-x86_64-qt5-static
-      
-      # Install 7-Zip
-      - name: Install 7-Zip
-        run: choco install 7zip -y
 
-      # Download and extract OpenSSL binaries to the expected directory
+      # Download and extract OpenSSL binaries
       - name: Download and extract OpenSSL
         run: |
           curl -L -o OpenSSL_mingw_build.rar https://www.eliboa.com/OpenSSL_mingw_build.rar
@@ -39,23 +36,17 @@ jobs:
         shell: msys2 {0}
         run: |
           ln -s $(pwd) ~/NxNandManager
-          cd ~/NxNandManager
-          
-          # Set OpenSSL environment variables
+          cd ~/NxNandManager/NxNandManager/gui
           export C_INCLUDE_PATH=$(pwd)/OpenSSL/OpenSSL_mingw64/include:$C_INCLUDE_PATH
           export LIBRARY_PATH=$(pwd)/OpenSSL/OpenSSL_mingw64/lib:$LIBRARY_PATH
           export PKG_CONFIG_PATH=$(pwd)/OpenSSL/OpenSSL_mingw64/lib/pkgconfig:$PKG_CONFIG_PATH
-          
-          # Build using the provided Makefile
-          make clean
+          /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro 'CONFIG += STATIC ARCH64'
           make -j"$(nproc)"
-          
-          # Copy artifacts to the GitHub workspace
           mkdir -p $GITHUB_WORKSPACE/bin
-          cp NxNandManager.exe $GITHUB_WORKSPACE/bin
-          cp virtual_fs/dokan/x64/dokan1.dll $GITHUB_WORKSPACE/bin
+          cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
+          cp ../virtual_fs/dokan/x64/dokan1.dll $GITHUB_WORKSPACE/bin
 
-      # Upload artifacts
+      # Upload the built artifact
       - uses: actions/upload-artifact@v3
         with:
           name: NxNandManager
