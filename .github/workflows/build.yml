@@ -37,11 +37,18 @@ jobs:
         run: |
           ln -s $(pwd) ~/NxNandManager
           cd ~/NxNandManager/NxNandManager/gui
-          export C_INCLUDE_PATH=$(pwd)/OpenSSL/OpenSSL_mingw64/include:$C_INCLUDE_PATH
-          export LIBRARY_PATH=$(pwd)/OpenSSL/OpenSSL_mingw64/lib:$LIBRARY_PATH
-          export PKG_CONFIG_PATH=$(pwd)/OpenSSL/OpenSSL_mingw64/lib/pkgconfig:$PKG_CONFIG_PATH
+
+          # Generate the Makefile
           /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro 'CONFIG += STATIC ARCH64'
-          make -j"$(nproc)"
+
+          # Patch Makefile.Release to update OpenSSL paths
+          sed -i "s|../../../OpenSSL_mingw64/lib|$(pwd)/OpenSSL/OpenSSL_mingw64/lib|g" Makefile.Release
+          sed -i "s|../../../OpenSSL_mingw64/include|$(pwd)/OpenSSL/OpenSSL_mingw64/include|g" Makefile.Release
+
+          # Build the project
+          make -f Makefile.Release -j"$(nproc)"
+
+          # Copy the artifacts to the GitHub workspace
           mkdir -p $GITHUB_WORKSPACE/bin
           cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
           cp ../virtual_fs/dokan/x64/dokan1.dll $GITHUB_WORKSPACE/bin
