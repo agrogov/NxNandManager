@@ -30,8 +30,14 @@ jobs:
       - name: Download and extract OpenSSL
         run: |
           curl -L -o OpenSSL_mingw_build.rar https://www.eliboa.com/OpenSSL_mingw_build.rar
-          mkdir OpenSSL
+          mkdir -p OpenSSL
           7z x OpenSSL_mingw_build.rar -oOpenSSL
+
+      # Debug OpenSSL Directory Structure
+      - name: Debug OpenSSL Directory
+        run: |
+          echo "Listing OpenSSL directory:"
+          ls -R OpenSSL
 
       # Link OpenSSL libraries for mingw64
       - name: Configure OpenSSL
