@@ -6,11 +6,14 @@ on:
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+      
+      # Set up MSYS2
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -18,7 +21,27 @@ jobs:
             base-devel
             mingw-w64-x86_64-toolchain
             mingw64/mingw-w64-x86_64-qt5-static
-      - name: build
+      
+      # Install 7-Zip if not already available
+      - name: Install 7-Zip
+        run: choco install 7zip -y
+      
+      # Download and extract OpenSSL binaries
+      - name: Download and extract OpenSSL
+        run: |
+          curl -L -o OpenSSL_mingw_build.rar https://www.eliboa.com/OpenSSL_mingw_build.rar
+          mkdir OpenSSL
+          7z x OpenSSL_mingw_build.rar -oOpenSSL
+
+      # Add OpenSSL binaries to the build environment
+      - name: Add OpenSSL to PATH
+        shell: bash
+        run: |
+          export PATH=$(pwd)/OpenSSL:$PATH
+          echo "PATH=$(pwd)/OpenSSL:\$PATH" >> $GITHUB_ENV
+
+      # Build the project
+      - name: Build
         shell: msys2 {0}
         run: |
           ln -s $(pwd) ~/NxNandManager
@@ -28,6 +51,8 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/bin
           cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
           cp ../virtual_fs/dokan/x64/dokan1.dll $GITHUB_WORKSPACE/bin
+
+      # Upload artifacts
       - uses: actions/upload-artifact@v3
         with:
           name: NxNandManager
