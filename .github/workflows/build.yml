@@ -52,7 +52,10 @@ jobs:
         run: |
           ln -s $(pwd) ~/NxNandManager
           cd ~/NxNandManager/NxNandManager/gui
-          /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro 'CONFIG += STATIC ARCH64 OPENSSL_LIBS="-L$(pwd)/OpenSSL/OpenSSL_mingw64/lib -lssl -lcrypto"'
+          /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro \
+            'CONFIG += STATIC ARCH64' \
+            'INCLUDEPATH += $(pwd)/OpenSSL/OpenSSL_mingw64/include' \
+            'LIBS += -L$(pwd)/OpenSSL/OpenSSL_mingw64/lib -lssl -lcrypto'
           make -j"$(nproc)"
           mkdir -p $GITHUB_WORKSPACE/bin
           cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
