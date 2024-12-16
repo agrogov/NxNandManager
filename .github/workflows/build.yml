@@ -33,34 +33,30 @@ jobs:
           mkdir -p OpenSSL
           7z x OpenSSL_mingw_build.rar -oOpenSSL
 
-      # Set OpenSSL Paths to OpenSSL_mingw32
+      # Set OpenSSL Paths
       - name: Configure OpenSSL
         shell: bash
         run: |
           export OPENSSL_DIR=$(pwd)/OpenSSL/OpenSSL_mingw32
-          export LIBRARY_PATH=$OPENSSL_DIR/lib:$LIBRARY_PATH
-          export C_INCLUDE_PATH=$OPENSSL_DIR/include:$C_INCLUDE_PATH
-          export PATH=$OPENSSL_DIR/bin:$PATH
           echo "OPENSSL_DIR=$OPENSSL_DIR" >> $GITHUB_ENV
-          echo "LIBRARY_PATH=$OPENSSL_DIR/lib:\$LIBRARY_PATH" >> $GITHUB_ENV
-          echo "C_INCLUDE_PATH=$OPENSSL_DIR/include:\$C_INCLUDE_PATH" >> $GITHUB_ENV
-          echo "PATH=$OPENSSL_DIR/bin:\$PATH" >> $GITHUB_ENV
+
+      # Patch the Makefile
+      - name: Patch Makefile
+        shell: bash
+        run: |
+          OPENSSL_DIR=$(pwd)/OpenSSL/OpenSSL_mingw32
+          sed -i "s|^INCLUDES=.*|INCLUDES=-Ivirtual_fs/dokan/include -I$OPENSSL_DIR/include|g" Makefile
+          sed -i "s|^LIBS=.*|LIBS=-static -L$OPENSSL_DIR/lib -lcrypto -lssl -lwsock32 -lws2_32 -Lvirtual_fs/dokan/x86/lib -ldokan1|g" Makefile
 
       # Build the project
       - name: Build
         shell: msys2 {0}
         run: |
-          ln -s $(pwd) ~/NxNandManager
-          cd ~/NxNandManager/NxNandManager/gui
-          /mingw64/qt5-static/bin/qmake.exe NxNandManager.pro \
-            'CONFIG += STATIC ARCH64' \
-            'INCLUDEPATH += $(pwd)/OpenSSL/OpenSSL_mingw32/include' \
-            'LIBS += -L$(pwd)/OpenSSL/OpenSSL_mingw32/lib -lssl -lcrypto'
-          sed -i 's|../../../OpenSSL_mingw64/lib|$(pwd)/OpenSSL/OpenSSL_mingw32/lib|g' Makefile.Release Makefile
-          make -f Makefile.Release -j"$(nproc)"
+          make clean
+          make -j"$(nproc)"
           mkdir -p $GITHUB_WORKSPACE/bin
-          cp release/NxNandManager.exe $GITHUB_WORKSPACE/bin
-          cp ../virtual_fs/dokan/x64/dokan1.dll $GITHUB_WORKSPACE/bin
+          cp NxNandManager.exe $GITHUB_WORKSPACE/bin
+          cp virtual_fs/dokan/x64/dokan1.dll $GITHUB_WORKSPACE/bin
 
       # Upload artifacts
       - uses: actions/upload-artifact@v3
